@@ -1,0 +1,800 @@
+{
+  "name": "WatchTower",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "for",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2624,
+        256
+      ],
+      "id": "e966ceb5-a3c3-4dda-9527-0bf3a695d463",
+      "name": "Webhook",
+      "webhookId": "2e311b67-4d76-4b89-b2ab-8896661fb378"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3fef78ac-5d47-41d9-ba24-6c26160c44a5",
+              "leftValue": "={{ $json.body.rule.id }}",
+              "rightValue": "^(550|553|554)$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -2352,
+        256
+      ],
+      "id": "1d61cf8f-37f3-449b-9a7c-4ec0dcf3129e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "// This Function node converts the incoming Wazuh webhook payload into a clean JSON structure\n\nreturn items.map(item => {\n  const data = item.json.body;\n\n  return {\n    json: {\n      timestamp: data.timestamp,\n      agent_id: data.agent?.id,\n      agent_name: data.agent?.name,\n      agent_ip: data.agent?.ip,\n      rule_id: data.rule?.id,\n      rule_description: data.rule?.description,\n      event_id: data.id,\n      file_path: data.syscheck?.path,\n      file_event: data.syscheck?.event,\n      file_size: data.syscheck?.size_after,\n      file_owner: data.syscheck?.uname_after,\n      md5: data.syscheck?.md5_after,\n      sha1: data.syscheck?.sha1_after,\n      sha256: data.syscheck?.sha256_after,\n      full_log: data.full_log,\n      wazuh_manager: data.manager?.name,\n      compliance: {\n        pci_dss: data.rule?.pci_dss,\n        gdpr: data.rule?.gdpr,\n        hipaa: data.rule?.hipaa,\n        nist_800_53: data.rule?.nist_800_53,\n      },\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2048,
+        240
+      ],
+      "id": "5eac0149-0900-48ab-9adb-146629cfb2d5",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1840,
+        240
+      ],
+      "id": "ea806f14-2a27-4a0d-8dd2-8399bd2bab20",
+      "name": "Wait",
+      "webhookId": "c93b301c-8fe0-4eb7-a962-557fc8d399eb"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iris.cybergard.com.au/alerts/add",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dfirIrisApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1392,
+        -336
+      ],
+      "id": "a3307818-f5f2-4986-9d29-3da2a080cb91",
+      "name": "IRIS AlERTS",
+      "credentials": {
+        "dfirIrisApi": {
+          "id": "4xVBjIPCcadyyGmP",
+          "name": "DFIR-IRIS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iris.cybergard.com.au/manage/cases/add",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dfirIrisApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -800,
+        240
+      ],
+      "id": "c8fdaf3d-8dba-4407-9ef5-99369fb30987",
+      "name": "IRIS CASES",
+      "credentials": {
+        "dfirIrisApi": {
+          "id": "4xVBjIPCcadyyGmP",
+          "name": "DFIR-IRIS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iris.cybergard.com.au/case/ioc/add",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dfirIrisApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1392,
+        -144
+      ],
+      "id": "cafa4bdd-a50b-4a6c-ae36-3fbf079013d8",
+      "name": "IOC",
+      "credentials": {
+        "dfirIrisApi": {
+          "id": "4xVBjIPCcadyyGmP",
+          "name": "DFIR-IRIS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iris.cybergard.com.au/case/evidences/add",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dfirIrisApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1392,
+        240
+      ],
+      "id": "fdeb81c1-3f54-4152-8f95-316f5748dbee",
+      "name": "EVIDENCES",
+      "credentials": {
+        "dfirIrisApi": {
+          "id": "4xVBjIPCcadyyGmP",
+          "name": "DFIR-IRIS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iris.cybergard.com.au/case/tasks/add",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dfirIrisApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -848,
+        -352
+      ],
+      "id": "4df583a5-229e-48e3-857d-b963d1a080f8",
+      "name": "TASK",
+      "credentials": {
+        "dfirIrisApi": {
+          "id": "4xVBjIPCcadyyGmP",
+          "name": "DFIR-IRIS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iris.cybergard.com.au/case/assets/add",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dfirIrisApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1408,
+        432
+      ],
+      "id": "8926fbe7-bc1a-4287-a9ee-8d0f42962f48",
+      "name": "IRIS ASSET",
+      "credentials": {
+        "dfirIrisApi": {
+          "id": "4xVBjIPCcadyyGmP",
+          "name": "DFIR-IRIS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => {\n  const j = item.json;\n\n  return {\n    json: {\n      asset_type_id: \"9\",\n      asset_domain: \"iris.local\",\n      asset_ip: j.agent_ip,\n      asset_info: \"\",\n      asset_compromise_status_id: \"1\",\n      analysis_status_id: \"3\",\n      ioc_links: [],\n      asset_name: `${j.agent_name}-${j.md5.slice(0,8)}-${Date.now()}`,  // now always unique\n      asset_tags: \"wazuh,auto-asset\",\n      asset_description:\n        `Host from Wazuh alert\\n` +\n        `Agent ID: ${j.agent_id}\\n` +\n        `File event on: ${j.file_path}\\n` +\n        `Rule: ${j.rule_id} - ${j.rule_description}`,\n      custom_attributes: {\n        agent_id: j.agent_id,\n        rule_id: j.rule_id,\n        event_id: j.event_id,\n        file_path: j.file_path\n      }\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1600,
+        432
+      ],
+      "id": "63083017-0a3e-41b0-b906-c376cf592854",
+      "name": "JS ASSET"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node: Wazuh alert -> IRIS /case/tasks/add payload\nconst items = $input.all();\n\nreturn items.map(item => {\n  const j = item.json;\n\n  return {\n    json: {\n      task_assignees_id: [1],  // IRIS user IDs; adjust (e.g. SOC analyst user id)\n      task_description:\n        `Wazuh file integrity alert for ${j.file_path}\\n` +\n        `Rule: ${j.rule_id} - ${j.rule_description}\\n` +\n        `Agent: ${j.agent_name} (${j.agent_ip})\\n` +\n        `Event: ${j.file_event.toUpperCase()} at ${j.timestamp}\\n` +\n        `Hashes:\\n` +\n        `MD5: ${j.md5}\\n` +\n        `SHA1: ${j.sha1}\\n` +\n        `SHA256: ${j.sha256}`,\n      task_status_id: 1,          // 1 = Open/New (check your IRIS status IDs)\n      task_tags: \"wazuh,file,auto-task\",\n      task_title: `[Wazuh] File alert on ${j.agent_name}`,\n      custom_attributes: {\n        agent_id: j.agent_id,\n        rule_id: j.rule_id,\n        event_id: j.event_id,\n        file_path: j.file_path\n      }\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1056,
+        -144
+      ],
+      "id": "bea56334-0c86-436d-ab5f-95acc1b311ea",
+      "name": "JS TASK"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node: Wazuh alert -> IRIS /case/evidences/add payload\nconst items = $input.all();\n\nreturn items.map(item => {\n  const j = item.json;\n\n  return {\n    json: {\n      filename: `Wazuh-${j.rule_id}-${j.agent_id}-file-${Date.now()}.webp`,\n      file_size: j.file_size.toString(),\n      file_hash: j.sha256,\n      type_id: \"2\",\n      start_date: j.timestamp,\n      end_date: j.timestamp,\n      file_description:\n        `Wazuh File Event Evidence\\n\\n` +\n        `**Rule**: ${j.rule_id} - ${j.rule_description}\\n` +\n        `**Agent**: ${j.agent_name} (${j.agent_ip})\\n` +\n        `**Event**: ${j.file_event.toUpperCase()}\\n` +\n        `**Path**: ${j.file_path}\\n` +\n        `**Owner**: ${j.file_owner}\\n` +\n        `**MD5**: ${j.md5}\\n` +\n        `**SHA1**: ${j.sha1}`,\n      custom_attributes: {\n        agent_id: j.agent_id,\n        agent_name: j.agent_name,\n        agent_ip: j.agent_ip,\n        rule_id: j.rule_id,\n        event_id: j.event_id,\n        file_path: j.file_path,\n        file_event: j.file_event\n      }\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1616,
+        240
+      ],
+      "id": "525019da-251f-41ed-94e7-53551e58b889",
+      "name": "JS EVIDENCES"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node: build ONE IOC body from the Wazuh alert\nconst items = $input.all();\n\nreturn items.map(item => {\n  const j = item.json;\n\n  return {\n    json: {\n      ioc_type_id: 113,                     // e.g. SHA256 type ID – adjust to your IRIS\n      ioc_tlp_id: 2,                        // e.g. TLP Amber\n      ioc_value: j.sha256,\n      ioc_description: `SHA256 of file ${j.file_path}`,\n      ioc_tags: \"wazuh,file,hash\",\n      custom_attributes: {\n        agent_id: j.agent_id,\n        rule_id: j.rule_id,\n        event_id: j.event_id\n      }\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1616,
+        -144
+      ],
+      "id": "8575ce00-61d1-4016-9060-d42f87d4b82b",
+      "name": "JS IOC"
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code node - Fixed for IRIS/SOC Alert API\nconst items = $input.all();\n\nreturn items.map(item => {\n  const j = item.json;\n  \n  return {\n    json: {\n      // REQUIRED FIELDS (fixed types/values)\n      alert_id: 0,  // Must be INTEGER (use 0 for auto-generate or get from lookup)\n      alert_title: `[${j.rule_id}] ${j.rule_description}`,  // REQUIRED string\n      alert_severity_id: 3,  // REQUIRED INTEGER (1=Low, 2=Med, 3=High, 4=Crit, 5=Urgent)\n      alert_status_id: 1,    // REQUIRED INTEGER (1=New, 2=In Progress, etc.)\n      alert_customer_id: 1,  // REQUIRED INTEGER (your customer/tenant ID)\n      \n      // Optional but useful fields\n      alert_description: \n        `🚨 Wazuh Alert\\n\\n` +\n        `**Agent**: ${j.agent_name} (${j.agent_ip})\\n` +\n        `**Event**: ${j.file_event.toUpperCase()} - ${j.file_path}\\n` +\n        `**Hashes**:\\nMD5: ${j.md5}\\nSHA256: ${j.sha256}\\n\\n` +\n        `**Full Log**:\\n${j.full_log}`,\n      \n      // Map Wazuh data to common alert fields\n      agent_id: j.agent_id,\n      agent_name: j.agent_name,\n      agent_ip: j.agent_ip,\n      rule_id: parseInt(j.rule_id),  // Convert to int\n      file_path: j.file_path,\n      file_event: j.file_event,\n      md5: j.md5,\n      sha256: j.sha256,\n      timestamp: j.timestamp,\n      \n      // Reference for case linking\n      case_soc_id: `wazuh-${j.rule_id}-${j.agent_id}-${j.event_id.slice(-8)}`\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1616,
+        -336
+      ],
+      "id": "01aa7e24-7e34-485f-b64d-fdef3fa18326",
+      "name": "JS ALERTS"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code node: Wazuh alert -> IRIS timeline event\n\nconst items = $input.all();\n\nfunction toIrisDate(ts) {\n  // Example input: \"2025-12-25T10:59:29.273+0000\"\n  const d = new Date(ts);\n  const iso = d.toISOString();        // \"2025-12-25T10:59:29.273Z\"\n  return iso.replace('Z', '000');     // \"2025-12-25T10:59:29.273000\"\n}\n\nreturn items.map(item => {\n  const j = item.json;\n\n  return {\n    json: {\n      event_title: `[Wazuh] File ${j.file_event} on ${j.agent_name}`,\n      event_raw: j.full_log,\n      event_source: \"Wazuh FIM\",\n      event_assets: [],\n      event_iocs: [],\n      event_category_id: \"5\",\n      event_in_summary: true,\n      event_in_graph: true,\n      event_color: \"#1572E899\",\n      event_date: toIrisDate(j.timestamp),\n      event_sync_iocs_assets: true,\n      event_tags: \"wazuh,file,fim\",\n      event_tz: \"+00:00\",\n      event_content:\n        `File integrity event from Wazuh.\\n\\n` +\n        `Agent: ${j.agent_name} (${j.agent_ip})\\n` +\n        `Rule: ${j.rule_id} - ${j.rule_description}\\n` +\n        `Event: ${j.file_event.toUpperCase()}\\n` +\n        `Path: ${j.file_path}\\n` +\n        `Size: ${j.file_size} bytes, Owner: ${j.file_owner}\\n\\n` +\n        `MD5: ${j.md5}\\n` +\n        `SHA1: ${j.sha1}\\n` +\n        `SHA256: ${j.sha256}`,\n      custom_attributes: {\n        agent_id: j.agent_id,\n        rule_id: j.rule_id,\n        event_id: j.event_id,\n        file_path: j.file_path\n      },\n      parent_event_id: null\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1616,
+        48
+      ],
+      "id": "9efa46fc-6bb6-4028-a07b-bb6803e487a6",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => {\n  const j = item.json;\n\n  return {\n    json: {\n      // Directory name derived from the alert\n      name: `Wazuh - ${j.agent_name} - ${j.rule_id}`,\n      // Root of the case notes tree; use null as in IRIS sample\n      parent_id: null\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1056,
+        -528
+      ],
+      "id": "d4a071c3-e3a9-41e3-88b7-fc368fe141fb",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iris.cybergard.com.au/case/timeline/events/add",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dfirIrisApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1392,
+        48
+      ],
+      "id": "05e3c9e0-1170-42f2-83b3-5aea032c89b2",
+      "name": "TIMELINE",
+      "credentials": {
+        "dfirIrisApi": {
+          "id": "4xVBjIPCcadyyGmP",
+          "name": "DFIR-IRIS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(item => {\n  const j = item.json;\n\n  return {\n    json: {\n      task_assignee_id: 1,              // valid IRIS user ID\n      task_status_id: 1,                // e.g. \"To do\" status ID from your IRIS\n      task_title: `[Wazuh] File alert on ${j.agent_name}`,\n      task_description:\n        `Wazuh file integrity alert.\\n\\n` +\n        `Agent: ${j.agent_name} (${j.agent_ip})\\n` +\n        `Rule: ${j.rule_id} - ${j.rule_description}\\n` +\n        `Event: ${j.file_event.toUpperCase()} at ${j.timestamp}\\n` +\n        `Path: ${j.file_path}\\n` +\n        `Size: ${j.file_size} bytes, Owner: ${j.file_owner}\\n\\n` +\n        `MD5: ${j.md5}\\n` +\n        `SHA1: ${j.sha1}\\n` +\n        `SHA256: ${j.sha256}\\n\\n` +\n        `Full log:\\n${j.full_log}`,\n      task_tags: \"wazuh,global-task\"\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1072,
+        32
+      ],
+      "id": "a728e4ad-1718-48f6-ac2b-1a058a3c9626",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iris.cybergard.com.au/case/notes/directories/add",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dfirIrisApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -848,
+        -528
+      ],
+      "id": "c96821c7-b17a-4f17-aec0-3e2a136d1938",
+      "name": "NOTES",
+      "credentials": {
+        "dfirIrisApi": {
+          "id": "4xVBjIPCcadyyGmP",
+          "name": "DFIR-IRIS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://iris.cybergard.com.au/global/tasks/add",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "dfirIrisApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{$json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -816,
+        32
+      ],
+      "id": "0ba6a178-8ef4-43cc-a6da-f65c1981a094",
+      "name": "GLOBAL TASK",
+      "credentials": {
+        "dfirIrisApi": {
+          "id": "4xVBjIPCcadyyGmP",
+          "name": "DFIR-IRIS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// n8n Code node\n\nconst items = $input.all();\n\nreturn items.map(item => {\n  const j = item.json;\n\n  const case_soc_id = `wazuh-${j.rule_id}-${j.agent_id}`;\n\n  const case_name = j.file_path || 'Wazuh Alert - File event';\n\n  const ioc_links = j.ioc_links || '';\n\n  const case_description =\n    '🚨 Alert Details\\n' +\n    `Rule ID: ${j.rule_id}\\n` +\n    `Description: ${j.rule_description}\\n\\n` +\n    '💻 Asset Info\\n' +\n    `Agent: ${j.agent_name} (${j.agent_ip})\\n` +\n    `File: ${j.file_path}\\n\\n` +\n    '🔗 IOC Intelligence\\n' +\n    ioc_links;\n\n  return {\n    json: {\n      case_soc_id,\n      case_customer: 1,\n      case_name,\n      case_description,\n    },\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        240
+      ],
+      "id": "ea6a6e96-c2bf-4315-8add-6aef6a0865c8",
+      "name": "JS CASES"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "vpce-0b883410f5c359fc7-q8mg2g17.vpce-svc-025b275cabaaec4fe.ap-southeast-2.vpce.amazonaws.com:5678",
+            "user-agent": "python-requests/2.32.2",
+            "accept-encoding": "gzip, deflate",
+            "accept": "*/*",
+            "connection": "keep-alive",
+            "content-type": "application/json",
+            "content-length": "1953"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "timestamp": "2025-12-25T10:59:29.273+0000",
+            "rule": {
+              "level": 5,
+              "description": "File added to the system.",
+              "id": "554",
+              "firedtimes": 1,
+              "mail": false,
+              "groups": [
+                "ossec",
+                "syscheck",
+                "syscheck_entry_added",
+                "syscheck_file"
+              ],
+              "pci_dss": [
+                "11.5"
+              ],
+              "gpg13": [
+                "4.11"
+              ],
+              "gdpr": [
+                "II_5.1.f"
+              ],
+              "hipaa": [
+                "164.312.c.1",
+                "164.312.c.2"
+              ],
+              "nist_800_53": [
+                "SI.7"
+              ],
+              "tsc": [
+                "PI1.4",
+                "PI1.5",
+                "CC6.1",
+                "CC6.8",
+                "CC7.2",
+                "CC7.3"
+              ]
+            },
+            "agent": {
+              "id": "002",
+              "name": "VmWindows--Testagent",
+              "ip": "10.156.3.171"
+            },
+            "manager": {
+              "name": "wazuh.manager"
+            },
+            "id": "1766660369.140108",
+            "full_log": "File 'c:\\users\\test\\downloads\\head-treasure-flower-disk-flowers-inflorescence-ray.webp' added\nMode: realtime\n",
+            "syscheck": {
+              "path": "c:\\users\\test\\downloads\\head-treasure-flower-disk-flowers-inflorescence-ray.webp",
+              "mode": "realtime",
+              "size_after": "88648",
+              "win_perm_after": [
+                {
+                  "name": "SYSTEM",
+                  "allowed": [
+                    "DELETE",
+                    "READ_CONTROL",
+                    "WRITE_DAC",
+                    "WRITE_OWNER",
+                    "SYNCHRONIZE",
+                    "READ_DATA",
+                    "WRITE_DATA",
+                    "APPEND_DATA",
+                    "READ_EA",
+                    "WRITE_EA",
+                    "EXECUTE",
+                    "READ_ATTRIBUTES",
+                    "WRITE_ATTRIBUTES"
+                  ]
+                },
+                {
+                  "name": "Administrators",
+                  "allowed": [
+                    "DELETE",
+                    "READ_CONTROL",
+                    "WRITE_DAC",
+                    "WRITE_OWNER",
+                    "SYNCHRONIZE",
+                    "READ_DATA",
+                    "WRITE_DATA",
+                    "APPEND_DATA",
+                    "READ_EA",
+                    "WRITE_EA",
+                    "EXECUTE",
+                    "READ_ATTRIBUTES",
+                    "WRITE_ATTRIBUTES"
+                  ]
+                },
+                {
+                  "name": "test",
+                  "allowed": [
+                    "DELETE",
+                    "READ_CONTROL",
+                    "WRITE_DAC",
+                    "WRITE_OWNER",
+                    "SYNCHRONIZE",
+                    "READ_DATA",
+                    "WRITE_DATA",
+                    "APPEND_DATA",
+                    "READ_EA",
+                    "WRITE_EA",
+                    "EXECUTE",
+                    "READ_ATTRIBUTES",
+                    "WRITE_ATTRIBUTES"
+                  ]
+                }
+              ],
+              "uid_after": "S-1-5-21-3514553473-2540858522-3933531594-1001",
+              "md5_after": "dd49417c906f7a7a1774d073013377f8",
+              "sha1_after": "41fd9990e5b84a3260c458e89bf71f99108b64fb",
+              "sha256_after": "17641355519d30ac88d0ad753576d5c377f05312a1700693a5cfaee27e1cd6bf",
+              "attrs_after": [
+                "ARCHIVE"
+              ],
+              "uname_after": "test",
+              "mtime_after": "2025-12-25T10:59:27",
+              "event": "added"
+            },
+            "decoder": {
+              "name": "syscheck_new_entry"
+            },
+            "location": "syscheck"
+          },
+          "webhookUrl": "https://iris.cybergard.com.au:5678/webhook/for",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "JS ALERTS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "JS IOC",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "JS EVIDENCES",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "JS TASK",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "JS ASSET",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "JS CASES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IRIS CASES": {
+      "main": [
+        []
+      ]
+    },
+    "TASK": {
+      "main": [
+        []
+      ]
+    },
+    "JS ASSET": {
+      "main": [
+        [
+          {
+            "node": "IRIS ASSET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JS TASK": {
+      "main": [
+        [
+          {
+            "node": "TASK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JS EVIDENCES": {
+      "main": [
+        [
+          {
+            "node": "EVIDENCES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JS IOC": {
+      "main": [
+        [
+          {
+            "node": "IOC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JS ALERTS": {
+      "main": [
+        [
+          {
+            "node": "IRIS AlERTS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "TIMELINE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "NOTES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        [
+          {
+            "node": "GLOBAL TASK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NOTES": {
+      "main": [
+        []
+      ]
+    },
+    "GLOBAL TASK": {
+      "main": [
+        []
+      ]
+    },
+    "JS CASES": {
+      "main": [
+        [
+          {
+            "node": "IRIS CASES",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "4375e011-871a-4741-8269-4015e880064a",
+  "meta": {
+    "instanceId": "193a9dc6179be5f511a611bc1e39438429cee7f22328785ca2395187036c3b31"
+  },
+  "id": "x9BwUYI0v9NGRi4R",
+  "tags": []
+}
